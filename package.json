@@ -1,7 +1,7 @@
 {
-  "name": "crt-310",
-  "version": "1.2.0",
-  "description": "Driver for crt-310",
+  "name": "cvr-100",
+  "version": "1.0.0",
+  "description": "Driver for cvr-100",
   "main": "index.js",
   "scripts": {
     "test": "mocha"
