@@ -5,8 +5,7 @@ const ref = require('ref');
 const path = require('path');
 const Struct = require('ref-struct');
 const ArrayType = require('ref-array');
-const Iconv = require('iconv').Iconv;
-const iconv = new Iconv('GBK', 'UTF-8');
+const iconv = require('iconv-lite');
 const hardware = {};
 const find = '\u0000';
 const re = new RegExp(find, 'g');
@@ -91,18 +90,18 @@ hardware.GetPersonMsg = () => {
     const res = libcvr.GetPersonMsgA(personInfo.ref(), image);
     if (res === 0) {
       return { error: 0, data: {
-        name: iconv.convert(Buffer.from(personInfo.name)).toString().replace(re, '').trim(),
-        sex: iconv.convert(Buffer.from(personInfo.sex)).toString().replace(re, '').trim(),
-        nation: iconv.convert(Buffer.from(personInfo.nation)).toString().replace(re, '').trim(),
-        birthday: iconv.convert(Buffer.from(personInfo.birthday)).toString().replace(re, '').trim(),
-        address: iconv.convert(Buffer.from(personInfo.address)).toString().replace(re, '').trim(),
-        cardId: iconv.convert(Buffer.from(personInfo.cardId)).toString().replace(re, '').trim(),
-        police: iconv.convert(Buffer.from(personInfo.police)).toString().replace(re, '').trim(),
-        validStart: iconv.convert(Buffer.from(personInfo.validStart)).toString().replace(re, '').trim(),
-        validEnd: iconv.convert(Buffer.from(personInfo.validEnd)).toString().replace(re, '').trim(),
-        sexCode: iconv.convert(Buffer.from(personInfo.sexCode)).toString().replace(re, '').trim(),
-        nationCode: iconv.convert(Buffer.from(personInfo.nationCode)).toString().replace(re, '').trim(),
-        appendMsg: iconv.convert(Buffer.from(personInfo.appendMsg)).toString().replace(re, '').trim(),
+        name: iconv.decode(Buffer.from(personInfo.name), 'gbk').replace(re, '').trim(),
+        sex: iconv.decode(Buffer.from(personInfo.sex), 'gbk').replace(re, '').trim(),
+        nation: iconv.decode(Buffer.from(personInfo.nation), 'gbk').replace(re, '').trim(),
+        birthday: iconv.decode(Buffer.from(personInfo.birthday), 'gbk').replace(re, '').trim(),
+        address: iconv.decode(Buffer.from(personInfo.address), 'gbk').replace(re, '').trim(),
+        cardId: iconv.decode(Buffer.from(personInfo.cardId), 'gbk').replace(re, '').trim(),
+        police: iconv.decode(Buffer.from(personInfo.police), 'gbk').replace(re, '').trim(),
+        validStart: iconv.decode(Buffer.from(personInfo.validStart), 'gbk').replace(re, '').trim(),
+        validEnd: iconv.decode(Buffer.from(personInfo.validEnd), 'gbk').replace(re, '').trim(),
+        sexCode: iconv.decode(Buffer.from(personInfo.sexCode), 'gbk').replace(re, '').trim(),
+        nationCode: iconv.decode(Buffer.from(personInfo.nationCode), 'gbk').replace(re, '').trim(),
+        appendMsg: iconv.decode(Buffer.from(personInfo.appendMsg), 'gbk').replace(re, '').trim(),
         image,
       } };
     }

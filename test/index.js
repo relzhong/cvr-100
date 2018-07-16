@@ -8,7 +8,7 @@ describe('test com port connect', () => {
     assert(error === 0);
   });
   it('should read idcard successfully', () => {
-    const res = cvr.GetPersonMsgW();
+    const res = cvr.GetPersonMsg();
     console.log(res);
     assert(res.error === 0);
   });
