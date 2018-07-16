@@ -1,17 +1,16 @@
 {
   "name": "cvr-100",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Driver for cvr-100",
   "main": "index.js",
   "scripts": {
     "test": "mocha"
   },
-  "author": "",
+  "author": "relzhong",
   "license": "ISC",
   "dependencies": {
     "ffi": "^2.2.0",
-    "ramda": "^0.25.0",
-    "ref-wchar": "^1.0.2"
+    "ref-array": "^1.2.0"
   },
   "devDependencies": {
     "eslint": "^4.19.1",

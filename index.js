@@ -1,52 +1,37 @@
+const fs = require('fs');
+const os = require('os');
 const ffi = require('ffi');
 const ref = require('ref');
 const path = require('path');
 const Struct = require('ref-struct');
-const wchar_t = require('ref-wchar');
+const ArrayType = require('ref-array');
 const Iconv = require('iconv').Iconv;
 const iconv = new Iconv('GBK', 'UTF-8');
-const wchar_string = wchar_t.string;
 const hardware = {};
-
-
-const PersonInfoW = Struct({
-  name: wchar_string,
-  sex: wchar_string,
-  nation: wchar_string,
-  birthday: wchar_string,
-  address: wchar_string,
-  cardId: wchar_string,
-  police: wchar_string,
-  validStart: wchar_string,
-  validEnd: wchar_string,
-  sexCode: wchar_string,
-  nationCode: wchar_string,
-  appendMsg: wchar_string,
-});
+const find = '\u0000';
+const re = new RegExp(find, 'g');
 
 const PersonInfoA = Struct({
-  name: 'string',
-  sex: 'string',
-  nation: 'string',
-  birthday: 'string',
-  address: 'string',
-  cardId: 'string',
-  police: 'string',
-  validStart: 'string',
-  validEnd: 'string',
-  sexCode: 'string',
-  nationCode: 'string',
-  appendMsg: 'string',
+  name: ArrayType('char', 32),
+  sex: ArrayType('char', 4),
+  nation: ArrayType('char', 20),
+  birthday: ArrayType('char', 12),
+  address: ArrayType('char', 72),
+  cardId: ArrayType('char', 20),
+  police: ArrayType('char', 32),
+  validStart: ArrayType('char', 12),
+  validEnd: ArrayType('char', 12),
+  sexCode: ArrayType('char', 4),
+  nationCode: ArrayType('char', 4),
+  appendMsg: ArrayType('char', 72),
 });
 
 const libcvr = ffi.Library(path.join(__dirname, './lib/cardapi3'), {
   OpenCardReader: [ 'int', [ 'int', 'int', 'int' ]],
-  GetPersonMsgW: [ 'int', [ ref.refType(PersonInfoW), ref.refType(wchar_t) ]],
-  GetPersonMsgA: [ 'int', [ ref.refType(PersonInfoA), ref.refType('char') ]],
+  GetPersonMsgA: [ 'int', [ ref.refType(PersonInfoA), 'string' ]],
   ResetCardReader: [ 'int', [ ]],
   CloseCardReader: [ 'int', [ ]],
   GetCardReaderStatus: [ 'int', [ 'int', 'int' ]],
-  GetErrorTextW: [ 'int', [ 'pointer', 'int' ]],
   GetErrorTextA: [ 'int', [ 'pointer', 'int' ]],
 });
 
@@ -101,23 +86,24 @@ hardware.GetCardReaderStatus = port => {
 hardware.GetPersonMsg = () => {
   try {
     const personInfo = new PersonInfoA();
-    const image = ref.alloc(ref.types.char);
+    const folder = fs.mkdtempSync(`${os.tmpdir()}${path.sep}`);
+    const image = path.join(folder, 'image.bmp');
     const res = libcvr.GetPersonMsgA(personInfo.ref(), image);
     if (res === 0) {
       return { error: 0, data: {
-        name: iconv.convert(personInfo.name),
-        sex: iconv.convert(personInfo.sex),
-        nation: iconv.convert(personInfo.nation),
-        birthday: iconv.convert(personInfo.birthday),
-        address: iconv.convert(personInfo.address),
-        cardId: iconv.convert(personInfo.cardId),
-        police: iconv.convert(personInfo.police),
-        validStart: iconv.convert(personInfo.validStart),
-        validEnd: iconv.convert(personInfo.validEnd),
-        sexCode: iconv.convert(personInfo.sexCode),
-        nationCode: iconv.convert(personInfo.nationCode),
-        appendMsg: iconv.convert(personInfo.appendMsg),
-        image: iconv.convert(image.deref()),
+        name: iconv.convert(Buffer.from(personInfo.name)).toString().replace(re, '').trim(),
+        sex: iconv.convert(Buffer.from(personInfo.sex)).toString().replace(re, '').trim(),
+        nation: iconv.convert(Buffer.from(personInfo.nation)).toString().replace(re, '').trim(),
+        birthday: iconv.convert(Buffer.from(personInfo.birthday)).toString().replace(re, '').trim(),
+        address: iconv.convert(Buffer.from(personInfo.address)).toString().replace(re, '').trim(),
+        cardId: iconv.convert(Buffer.from(personInfo.cardId)).toString().replace(re, '').trim(),
+        police: iconv.convert(Buffer.from(personInfo.police)).toString().replace(re, '').trim(),
+        validStart: iconv.convert(Buffer.from(personInfo.validStart)).toString().replace(re, '').trim(),
+        validEnd: iconv.convert(Buffer.from(personInfo.validEnd)).toString().replace(re, '').trim(),
+        sexCode: iconv.convert(Buffer.from(personInfo.sexCode)).toString().replace(re, '').trim(),
+        nationCode: iconv.convert(Buffer.from(personInfo.nationCode)).toString().replace(re, '').trim(),
+        appendMsg: iconv.convert(Buffer.from(personInfo.appendMsg)).toString().replace(re, '').trim(),
+        image,
       } };
     }
     return { error: -1 };
@@ -130,12 +116,9 @@ hardware.GetErrorText = () => {
   try {
     const len = ref.alloc(ref.types.byte);
     const data = ref.alloc(ref.types.char);
-    const res = libcvr.GetErrorTextA(data, len);
+    libcvr.GetErrorTextA(data, len);
     const outData = ref.reinterpret(data, len.deref());
-    if (res === 0) {
-      return { error: 0, data: { errorText: iconv.convert(outData) } };
-    }
-    return { error: -1 };
+    return { error: 0, data: { errorText: iconv.convert(outData).toString() } };
   } catch (e) {
     return { error: -1 };
   }

@@ -2,4 +2,4 @@
 
 ## cvr-100 idcard reader driver in nodejs
 
-## see wiki for more detail
+## need to run in administrator mode once.

@@ -6,7 +6,8 @@ module.exports = {
     "sourceType": "module"
   },
   "rules": {
-    "linebreak-style":"off"
+    "linebreak-style":"off",
+    "newline-per-chained-call":"off"
   },
   "env": {
     "browser": true,
