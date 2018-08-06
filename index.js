@@ -9,6 +9,35 @@ const iconv = require('iconv-lite');
 const hardware = {};
 const find = '\u0000';
 const re = new RegExp(find, 'g');
+const stack = require('callsite');
+
+function hazardous(location) {
+  const electronRegex = /[\\/]electron\.asar[\\/]/;
+  const asarRegex = /^(?:^\\\\\?\\)?(.*\.asar)[\\/](.*)/;
+  /* convert path when use electron asar unpack
+   */
+  if (!path.isAbsolute(location)) {
+    return location;
+  }
+
+  if (electronRegex.test(location)) {
+    return location;
+  }
+
+  const matches = asarRegex.exec(location);
+  if (!matches || matches.length !== 3) {
+    return location;
+  }
+
+  /* Skip monkey patching when an electron method is in the callstack. */
+  const skip = stack().some(site => {
+    const siteFile = site.getFileName();
+    return /^ELECTRON_ASAR/.test(siteFile) || electronRegex.test(siteFile);
+  });
+
+  return skip ? location : location.replace(/\.asar([\\/])/, '.asar.unpacked$1');
+}
+
 
 const PersonInfoA = Struct({
   name: ArrayType('char', 32),
@@ -25,7 +54,7 @@ const PersonInfoA = Struct({
   appendMsg: ArrayType('char', 72),
 });
 
-const libcvr = ffi.Library(path.join(__dirname, './lib/cardapi3'), {
+const libcvr = ffi.Library(hazardous(path.join(__dirname, './lib/cardapi3')), {
   OpenCardReader: [ 'int', [ 'int', 'int', 'int' ]],
   GetPersonMsgA: [ 'int', [ ref.refType(PersonInfoA), 'string' ]],
   ResetCardReader: [ 'int', [ ]],
